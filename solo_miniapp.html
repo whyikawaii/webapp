@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Solo App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0c;
+    --bg2: #161214;
+    --bg3: #1f181a;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --purple: #e6324b;
+    --purple2: #ff5c72;
+    --purple-bg: rgba(230,50,75,0.14);
+    --gold: #f5c842;
+    --gold-bg: rgba(245,200,66,0.1);
+    --green: #3ecf8e;
+    --green-bg: rgba(62,207,142,0.1);
+    --red: #ff5c72;
+    --text: #f5f0f0;
+    --text2: #a08b8e;
+    --text3: #6b5a5c;
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 16px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+  }
+
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e6324b, #ff8a65);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px; color: #fff;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 0 0 2px var(--bg2), 0 0 0 4px rgba(230,50,75,0.35);
+  }
+
+  .profile-info { flex: 1; }
+  .profile-name { font-size: 15px; font-weight: 600; }
+  .profile-coins {
+    font-size: 13px; color: var(--gold);
+    display: flex; align-items: center; gap: 4px; margin-top: 2px;
+  }
+
+  .level-badge {
+    background: var(--purple-bg);
+    border: 1px solid rgba(230,50,75,0.3);
+    color: var(--purple2);
+    font-size: 11px; font-weight: 600;
+    padding: 4px 10px; border-radius: 99px;
+  }
+
+  /* XP BAR */
+  .xp-bar-wrap { padding: 0 0 14px; }
+  .xp-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); margin-bottom: 6px; }
+  .xp-bar { height: 5px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .xp-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--purple2)); border-radius: 99px; transition: width 0.4s ease; }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 10px 4px 8px;
+    background: none; border: none;
+    color: var(--text3); font-size: 10px; font-family: inherit;
+    cursor: pointer; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: color 0.15s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .nav-btn svg { width: 20px; height: 20px; }
+  .nav-btn.active { color: var(--purple2); border-bottom-color: var(--purple); }
+
+  /* MAIN */
+  .main { padding: 16px; padding-bottom: 24px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .card-title {
+    font-size: 11px; font-weight: 600;
+    color: var(--text3); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 14px;
+  }
+
+  /* CHECKIN */
+  .checkin-hero {
+    text-align: center;
+    padding: 8px 0 4px;
+    position: relative;
+  }
+
+  .checkin-hero::before {
+    content: '';
+    position: absolute;
+    top: -20px; left: 50%;
+    transform: translateX(-50%);
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(230,50,75,0.2), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .checkin-hero > * { position: relative; z-index: 1; }
+
+  .checkin-icon { font-size: 52px; line-height: 1; margin-bottom: 12px; }
+  .checkin-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .checkin-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+
+  .checkin-timer {
+    font-size: 32px; font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--purple2);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .checkin-timer.ready { color: var(--green); }
+  .timer-label { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
+
+  .streak-row {
+    display: flex; justify-content: center; gap: 6px; margin-bottom: 20px;
+  }
+
+  .streak-dot {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+
+  .streak-dot.done { background: var(--purple-bg); border-color: rgba(230,50,75,0.4); }
+  .streak-dot.today { background: var(--purple); border-color: var(--purple); }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%; padding: 14px;
+    border: none; border-radius: var(--radius-sm);
+    font-size: 15px; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--purple);
+    color: #fff;
+  }
+
+  .btn-primary:hover { background: #9070ff; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; transform: none; }
+
+  /* TASK ITEMS */
+  .task-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .task-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .task-item:first-child { padding-top: 0; }
+
+  .task-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .task-desc { font-size: 11px; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+  .task-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .task-reward { font-size: 12px; font-weight: 600; color: var(--gold); }
+
+  .task-btn {
+    padding: 5px 12px; border-radius: 99px;
+    font-size: 12px; font-weight: 600; font-family: inherit;
+    cursor: pointer; border: 1px solid;
+    transition: all 0.15s; white-space: nowrap;
+  }
+
+  .task-btn-go { background: var(--purple-bg); border-color: rgba(230,50,75,0.4); color: var(--purple2); }
+  .task-btn-go:hover { background: rgba(230,50,75,0.2); }
+  .task-btn-done { background: var(--green-bg); border-color: rgba(62,207,142,0.3); color: var(--green); cursor: default; }
+
+  /* SECTION LABEL */
+  .sec-label {
+    font-size: 11px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin: 18px 0 10px;
+  }
+
+  /* LADDER */
+  .ladder-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ladder-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .ladder-row:first-child { padding-top: 0; }
+  .ladder-row.me { background: var(--purple-bg); border-radius: 10px; padding: 10px 10px; margin: 0 -10px; }
+
+  .ldr-rank { width: 28px; font-size: 14px; font-weight: 700; text-align: center; flex-shrink: 0; }
+  .ldr-rank.gold { color: #f5c842; }
+  .ldr-rank.silver { color: #b0bec5; }
+  .ldr-rank.bronze { color: #cd7f32; }
+
+  .ldr-av {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: var(--text2);
+  }
+
+  .ldr-av.me-av { background: var(--purple-bg); color: var(--purple2); border-color: rgba(230,50,75,0.4); }
+  .ldr-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .ldr-score { font-size: 13px; font-weight: 700; color: var(--gold); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; top: 20px; left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 20px; border-radius: 99px;
+    font-size: 14px; font-weight: 600;
+    z-index: 999; pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 10px; text-align: center;
+  }
+
+  .stat-val { font-size: 20px; font-weight: 700; color: var(--text); }
+  .stat-lbl { font-size: 10px; color: var(--text3); margin-top: 3px; }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <div class="profile">
+    <div class="avatar" id="av">SL</div>
+    <div class="profile-info">
+      <div class="profile-name" id="uname">Solo Player</div>
+      <div class="profile-coins">🪙 <span id="coin-count">0</span> монет</div>
+    </div>
+    <div class="level-badge" id="lvl-badge">Ур. 1</div>
+  </div>
+  <div class="xp-bar-wrap">
+    <div class="xp-labels">
+      <span>Прогресс до след. уровня</span>
+      <span id="xp-label">0 / 500</span>
+    </div>
+    <div class="xp-bar"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="switchTab('daily',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Дейли
+    </button>
+    <button class="nav-btn" onclick="switchTab('tasks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Задания
+    </button>
+    <button class="nav-btn" onclick="switchTab('socials',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Соцсети
+    </button>
+    <button class="nav-btn" onclick="switchTab('ladder',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 20V10M12 20V4M18 20v-6"/></svg>
+      Ладдер
+    </button>
+  </nav>
+</div>
+
+<div class="main">
+
+  <!-- DAILY -->
+  <div class="section active" id="tab-daily">
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="stat-streak">0</div>
+        <div class="stat-lbl">🔥 Стрик</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-tasks">0</div>
+        <div class="stat-lbl">✅ Выполнено</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="stat-earned">0</div>
+        <div class="stat-lbl">🪙 Сегодня</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="checkin-hero">
+        <div class="checkin-icon">🎁</div>
+        <div class="checkin-title">Ежедневная награда</div>
+        <div class="checkin-sub">Заходи каждый день — стрик увеличивает награду!</div>
+        <div class="streak-row" id="streak-row"></div>
+        <div class="checkin-timer" id="checkin-timer">00:00:00</div>
+        <div class="timer-label" id="timer-label">Осталось до следующей награды</div>
+        <button class="btn btn-primary" id="checkin-btn" onclick="doCheckin()">🎁 Забрать +100 монет</button>
+      </div>
+    </div>
+
+    <div class="sec-label">Дейлики — обновляются в полночь</div>
+    <div class="card" id="daily-tasks-list"></div>
+
+  </div>
+
+  <!-- TASKS -->
+  <div class="section" id="tab-tasks">
+    <div class="sec-label">Постоянные задания</div>
+    <div class="card" id="perm-list"></div>
+    <div class="sec-label">Разовые задания</div>
+    <div class="card" id="one-list"></div>
+  </div>
+
+  <!-- SOCIALS -->
+  <div class="section" id="tab-socials">
+    <div class="sec-label">Подпишись на Solo</div>
+    <div class="card" id="social-list"></div>
+  </div>
+
+  <!-- LADDER -->
+  <div class="section" id="tab-ladder">
+    <div class="sec-label">Топ игроков</div>
+    <div class="card" id="ladder-list"></div>
+  </div>
+
+</div>
+
+<script>
+/* ── ICONS (векторные, в едином стиле, не зависят от интернета) ── */
+const ICONS = {
+  comment: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.6l-1-1a5.5 5.5 0 00-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 000-7.8z"/></svg>`,
+  share: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`,
+  thumb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 22V11M2 13v7a2 2 0 002 2h12.6a2 2 0 002-1.7l1.4-9a2 2 0 00-2-2.3H14V4a2 2 0 00-2-2L7 11"/></svg>`,
+  pencil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5z"/></svg>`,
+  people: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`,
+  dice: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="16" cy="16" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>`,
+  bolt: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 11-12h-7z"/></svg>`,
+  plane: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg>`,
+};
+function iconSvg(key) { return ICONS[key] || key; }
+
+/* ── STATE ── */
+let S = JSON.parse(localStorage.getItem('solo_v2') || 'null') || {
+  coins: 0, xp: 0,
+  lastCheckin: 0, streak: 0, lastDailyDate: '',
+  dailyDone: [], oneDone: [], socialDone: [],
+  todayEarned: 0, todayDate: '', tasksToday: 0
+};
+
+/* ── DATA ── */
+const DAILY = [
+  { id:'d1', name:'Развёрнутый комментарий', desc:'Напиши комментарий в канале Solo (мин. 50 символов)', reward:50, icon:'comment', bg:'rgba(230,50,75,0.12)' },
+  { id:'d2', name:'5 реакций на посты', desc:'Поставь реакции на любые 5 постов в канале', reward:30, icon:'heart', bg:'rgba(230,50,75,0.1)' },
+  { id:'d3', name:'Репост в свой профиль', desc:'Поделись любым постом Solo в своём Telegram', reward:40, icon:'share', bg:'rgba(62,207,142,0.08)' },
+];
+
+const PERM = [
+  { id:'p1', name:'Поставь реакцию', desc:'На любой пост канала Solo (без лимита)', reward:10, icon:'thumb', bg:'rgba(230,50,75,0.08)' },
+  { id:'p2', name:'Напиши комментарий', desc:'Любой комментарий от 10 символов', reward:15, icon:'pencil', bg:'rgba(62,207,142,0.08)' },
+];
+
+const ONE = [
+  { id:'o1', name:'Пригласи друга в канал', desc:'Друг должен вступить по твоей реферальной ссылке', reward:200, icon:'people', bg:'rgba(230,50,75,0.12)' },
+  { id:'o3', name:'Зарегистрируйся на BetBoom', desc:'Используй промокод SOLO при регистрации', reward:500, icon:'dice', bg:'rgba(245,200,66,0.1)' },
+  { id:'o4', name:'Буст канала Solo', desc:'Сделай буст основного Telegram-канала Solo', reward:300, icon:'bolt', bg:'rgba(230,50,75,0.15)' },
+];
+
+/* Реальные каналы Solo — подписка проверяется бэкендом через Telegram Bot API */
+const SOCIAL = [
+  { id:'s1', name:'Канал Solo', desc:'Подпишись на основной канал Solo в Telegram', reward:100, icon:'plane', url:'https://t.me/solo_q_q' },
+  { id:'s2', name:'Второй канал Solo', desc:'Подпишись на второй канал Solo', reward:100, icon:'plane', url:'https://t.me/solo322' },
+  { id:'s3', name:'Чат Solo', desc:'Вступи в чат Solo и общайся с другими игроками', reward:150, icon:'chat', url:'https://t.me/solo322berezin' },
+];
+
+const FAKE_LADDER = [
+  { name:'ProGamer99', coins:4200 },
+  { name:'NightWolf', coins:3850 },
+  { name:'CryptoKing', coins:3100 },
+  { name:'BetMaster', coins:1200 },
+  { name:'StreamFan', coins:980 },
+  { name:'DailyUser', coins:750 },
+];
+
+/* ── СЕРВЕР (реальная проверка заданий) ── */
+/* Вставь сюда адрес своего сервера после запуска server.py и туннеля */
+const API_BASE = 'https://headset-current-shaft-agencies.trycloudflare.com';
+let serverOnline = false;
+
+async function apiFetch(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({}, opts.headers, {
+    'X-Telegram-Init-Data': (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp.initData : ''
+  });
+  const res = await fetch(API_BASE.replace(/\/$/, '') + path, opts);
+  if (!res.ok) { const t = await res.text().catch(()=> ''); throw new Error(t || ('HTTP ' + res.status)); }
+  return res.json();
+}
+
+async function syncState() {
+  if (!API_BASE || API_BASE.indexOf('ВСТАВЬ') !== -1) { console.log('Сервер не настроен — работаю в локальном демо-режиме'); return; }
+  try {
+    const r = await apiFetch('/api/state', { method: 'GET' });
+    Object.assign(S, r.state);
+    serverOnline = true;
+    save();
+  } catch (e) {
+    console.log('Сервер недоступен, использую локальные данные:', e.message);
+    serverOnline = false;
+  }
+}
+
+/* ── HELPERS ── */
+function save() { localStorage.setItem('solo_v2', JSON.stringify(S)); }
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+function addCoins(n) {
+  S.coins += n; S.xp += n;
+  S.todayEarned += n; S.tasksToday++;
+  updateHeader(); save();
+}
+
+function levelFor(xp) { return Math.floor(xp / 500) + 1; }
+
+function updateHeader() {
+  document.getElementById('coin-count').textContent = S.coins.toLocaleString('ru');
+  const lvl = levelFor(S.xp);
+  document.getElementById('lvl-badge').textContent = 'Ур. ' + lvl;
+  const xpInLevel = S.xp % 500;
+  document.getElementById('xp-fill').style.width = (xpInLevel / 500 * 100) + '%';
+  document.getElementById('xp-label').textContent = xpInLevel + ' / 500';
+  document.getElementById('stat-streak').textContent = S.streak;
+  document.getElementById('stat-tasks').textContent = S.tasksToday;
+  document.getElementById('stat-earned').textContent = S.todayEarned;
+}
+
+/* ── CHECKIN ── */
+function renderCheckin() {
+  const now = Date.now();
+  const diff = 86400000 - (now - S.lastCheckin);
+  const btn = document.getElementById('checkin-btn');
+  const timer = document.getElementById('checkin-timer');
+  const label = document.getElementById('timer-label');
+
+  if (diff <= 0) {
+    timer.textContent = 'Готово!';
+    timer.className = 'checkin-timer ready';
+    label.textContent = 'Нажми и забери монеты!';
+    btn.disabled = false;
+    btn.textContent = '🎁 Забрать +100 монет';
+  } else {
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor(diff % 3600000 / 60000);
+    const s = Math.floor(diff % 60000 / 1000);
+    timer.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    timer.className = 'checkin-timer';
+    label.textContent = 'Осталось до следующей награды';
+    btn.disabled = true;
+    btn.textContent = '⏳ Уже забрано';
+  }
+
+  // streak dots
+  const row = document.getElementById('streak-row');
+  row.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement('div');
+    const dayNum = i + 1;
+    d.textContent = dayNum;
+    if (dayNum < S.streak % 7 || (S.streak >= 7 && dayNum <= 7)) d.className = 'streak-dot done';
+    else if (dayNum === (S.streak % 7 || 7) && diff <= 0) d.className = 'streak-dot today';
+    else d.className = 'streak-dot';
+    row.appendChild(d);
+  }
+}
+
+async function doCheckin() {
+  if (Date.now() - S.lastCheckin < 86400000) return;
+  if (serverOnline) {
+    try {
+      const r = await apiFetch('/api/checkin', { method: 'POST' });
+      Object.assign(S, r.state);
+      save(); updateHeader();
+      toast('🎁 Получено ' + r.amount + ' монет! Стрик: ' + S.streak + ' дней 🔥');
+      haptic('medium');
+      renderCheckin();
+      return;
+    } catch (e) {
+      toast('Сервер не ответил, попробуй ещё раз');
+      return;
+    }
+  }
+  // локальный демо-режим (если сервер не подключён)
+  S.lastCheckin = Date.now();
+  S.streak++;
+  const bonus = Math.min(S.streak * 10, 100);
+  const total = 100 + bonus;
+  addCoins(total);
+  toast('🎁 Получено ' + total + ' монет! Стрик: ' + S.streak + ' дней 🔥');
+  haptic('medium');
+  renderCheckin();
+}
+
+/* ── DAILY RESET ── */
+function checkDailyReset() {
+  const today = new Date().toDateString();
+  if (S.lastDailyDate !== today) {
+    S.dailyDone = [];
+    S.lastDailyDate = today;
+    S.todayEarned = 0;
+    S.tasksToday = 0;
+    S.todayDate = today;
+    save();
+  }
+}
+
+/* ── RENDER TASKS ── */
+function taskBtn(done, label, onclick) {
+  if (done) return `<button class="task-btn task-btn-done">✓ Готово</button>`;
+  return `<button class="task-btn task-btn-go" onclick="${onclick}">${label}</button>`;
+}
+
+function renderDailyTasks() {
+  document.getElementById('daily-tasks-list').innerHTML = DAILY.map(t => {
+    const done = S.dailyDone.includes(t.id);
+    return `<div class="task-item">
+      <div class="task-icon" style="background:${t.bg}">${iconSvg(t.icon)}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+      </div>
+      <div class="task-right">
+        <div class="task-reward">+${t.reward} 🪙</div>
+        ${taskBtn(done, 'Выполнить', `doDaily('${t.id}')`)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPermTasks() {
+  document.getElementById('perm-list').innerHTML = PERM.map(t =>
+    `<div class="task-item">
+      <div class="task-icon" style="background:${t.bg}">${iconSvg(t.icon)}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+      </div>
+      <div class="task-right">
+        <div class="task-reward">+${t.reward} 🪙</div>
+        <button class="task-btn task-btn-go" onclick="doPerm('${t.id}')">+${t.reward}</button>
+      </div>
+    </div>`
+  ).join('');
+}
+
+function renderOneTasks() {
+  document.getElementById('one-list').innerHTML = ONE.map(t => {
+    const done = S.oneDone.includes(t.id);
+    return `<div class="task-item">
+      <div class="task-icon" style="background:${t.bg}">${iconSvg(t.icon)}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+      </div>
+      <div class="task-right">
+        <div class="task-reward">+${t.reward} 🪙</div>
+        ${taskBtn(done, 'Выполнить', `doOne('${t.id}')`)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let openedSocial = new Set();
+
+function renderSocials() {
+  document.getElementById('social-list').innerHTML = SOCIAL.map(t => {
+    const done = S.socialDone.includes(t.id);
+    let btn;
+    if (done) {
+      btn = `<button class="task-btn task-btn-done">✓ Готово</button>`;
+    } else if (openedSocial.has(t.id)) {
+      btn = `<button class="task-btn task-btn-go" onclick="verifySocial('${t.id}')">Проверить</button>`;
+    } else {
+      btn = `<button class="task-btn task-btn-go" onclick="doSocial('${t.id}','${t.url}')">Подписаться</button>`;
+    }
+    return `<div class="task-item">
+      <div class="task-icon" id="ch-icon-${t.id}" style="background:rgba(230,50,75,0.1)">${iconSvg(t.icon)}</div>
+      <div class="task-body">
+        <div class="task-name">${t.name}</div>
+        <div class="task-desc">${t.desc}</div>
+      </div>
+      <div class="task-right">
+        <div class="task-reward">+${t.reward} 🪙</div>
+        ${btn}
+      </div>
+    </div>`;
+  }).join('');
+  SOCIAL.forEach(t => loadChannelAvatar(t.id));
+}
+
+function loadChannelAvatar(id) {
+  if (!API_BASE || API_BASE.indexOf('ВСТАВЬ') !== -1) return; // сервер не настроен — оставляем иконку
+  const el = document.getElementById('ch-icon-' + id);
+  if (!el) return;
+  const img = new Image();
+  img.onload = () => {
+    el.innerHTML = '';
+    img.style.width = '100%'; img.style.height = '100%';
+    img.style.objectFit = 'cover'; img.style.borderRadius = '10px';
+    el.style.background = 'transparent';
+    el.appendChild(img);
+  };
+  img.onerror = () => {}; // фото не загрузилось — остаётся векторная иконка
+  img.src = API_BASE.replace(/\/$/, '') + '/api/avatar/channel/' + id;
+}
+
+function renderLadder() {
+  const list = [...FAKE_LADDER, { name: 'Solo Player', coins: S.coins, isMe: true }]
+    .sort((a, b) => b.coins - a.coins);
+
+  document.getElementById('ladder-list').innerHTML = list.map((u, i) => {
+    const r = i + 1;
+    const rankClass = r === 1 ? 'gold' : r === 2 ? 'silver' : r === 3 ? 'bronze' : '';
+    const rankLabel = r <= 3 ? ['🥇','🥈','🥉'][r-1] : r;
+    const init = u.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="ladder-row ${u.isMe ? 'me' : ''}">
+      <div class="ldr-rank ${rankClass}">${rankLabel}</div>
+      <div class="ldr-av ${u.isMe ? 'me-av' : ''}">${init}</div>
+      <div class="ldr-name">${u.name}${u.isMe ? ' 👈' : ''}</div>
+      <div class="ldr-score">${u.coins.toLocaleString('ru')} 🪙</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── ACTIONS ── */
+function doDaily(id) {
+  if (S.dailyDone.includes(id)) return;
+  S.dailyDone.push(id);
+  const t = DAILY.find(x => x.id === id);
+  addCoins(t.reward);
+  toast('✅ +' + t.reward + ' монет!');
+  haptic('light');
+  renderDailyTasks();
+}
+
+function doPerm(id) {
+  const t = PERM.find(x => x.id === id);
+  addCoins(t.reward);
+  toast('✅ +' + t.reward + ' монет!');
+}
+
+function doOne(id) {
+  if (S.oneDone.includes(id)) return;
+  S.oneDone.push(id);
+  const t = ONE.find(x => x.id === id);
+  addCoins(t.reward);
+  toast('🎉 +' + t.reward + ' монет! Задание выполнено!');
+  haptic('medium');
+  renderOneTasks();
+}
+
+function doSocial(id, url) {
+  window.open(url, '_blank');
+  openedSocial.add(id);
+  if (!serverOnline) {
+    // локальный демо-режим без сервера — засчитываем по факту перехода
+    if (S.socialDone.includes(id)) return;
+    setTimeout(() => {
+      S.socialDone.push(id);
+      const t = SOCIAL.find(x => x.id === id);
+      addCoins(t.reward);
+      toast('🔗 +' + t.reward + ' монет за подписку! (демо-режим)');
+      renderSocials(); save();
+    }, 2000);
+    return;
+  }
+  toast('Открыл канал? Возвращайся и жми «Проверить» 👇');
+  renderSocials();
+}
+
+async function verifySocial(id) {
+  try {
+    const r = await apiFetch('/api/social/' + id + '/verify', { method: 'POST' });
+    Object.assign(S, r.state);
+    save(); updateHeader();
+    if (r.already) {
+      toast('Уже засчитано ✅');
+    } else if (r.subscribed) {
+      toast('✅ +' + r.reward + ' монет за подписку!');
+      haptic('medium');
+    } else {
+      toast('Пока не вижу подписку 🤔 Подожди пару секунд и попробуй снова');
+    }
+  } catch (e) {
+    toast('Не получилось проверить, попробуй позже');
+  }
+  renderSocials();
+}
+
+/* ── TABS ── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'ladder') renderLadder();
+}
+
+/* ── TELEGRAM WEB APP ── */
+let tg = window.Telegram ? window.Telegram.WebApp : null;
+let tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user : null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  if (tg.setHeaderColor) try { tg.setHeaderColor('#17171f'); } catch(e) {}
+  if (tg.setBackgroundColor) try { tg.setBackgroundColor('#0f0f13'); } catch(e) {}
+}
+
+function initProfile() {
+  const avEl = document.getElementById('av');
+  const nameEl = document.getElementById('uname');
+  if (tgUser) {
+    const full = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+    nameEl.textContent = full || ('Player ' + (tgUser.id || ''));
+    if (tgUser.photo_url) {
+      avEl.innerHTML = `<img src="${tgUser.photo_url}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+      const initials = (tgUser.first_name ? tgUser.first_name[0] : 'S') + (tgUser.last_name ? tgUser.last_name[0] : '');
+      avEl.textContent = initials.toUpperCase();
+    }
+  }
+  // звук вибро-отклик при доступности — приятнее на ощупь
+  window.haptic = (type) => { if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred(type || 'light'); };
+}
+
+/* ── INIT ── */
+async function initApp() {
+  initProfile();
+  checkDailyReset();
+  await syncState();
+  updateHeader();
+  renderCheckin();
+  renderDailyTasks();
+  renderPermTasks();
+  renderOneTasks();
+  renderSocials();
+  setInterval(renderCheckin, 1000);
+}
+initApp();
+</script>
+</body>
+</html>
